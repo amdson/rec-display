@@ -3,7 +3,7 @@ import './App.css';
 import Header from './components/Header';
 import TDLogic from './components/TDLogic';
 import { MediaDisplay, MediaPanel} from './components/MediaDisplay';
-import React from 'react';
+import React, { useState } from 'react';
 
 
 // const Header = () => {
@@ -15,13 +15,20 @@ import React from 'react';
 //   );
 // };
 
+let user_data = {
+  media_data: [{"title": "Harry Potter and the Goblet of Fire", "id": 0}, 
+                  {"title": "Game of Thrones", "id": 1}],
+  user_id: 0,
+  user_selection: 0, 
+  selection_buffer: []
+};
+
 const App = () => {
-  let media_data = [{"title": "Harry Potter and the Goblet of Fire"}, 
-                  {"title": "Game of Thrones"}]; 
+  const [media_data, setMediaData] = useState(user_data.media_data);
   return (
     <div className="App">
       <Header className="App-header"/>
-      <MediaDisplay data={media_data}/>
+      <MediaDisplay user_id={user_data.user_id} data={media_data} media_callback={setMediaData}/>
     </div>
   );
 };

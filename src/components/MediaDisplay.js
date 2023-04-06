@@ -1,5 +1,32 @@
 import React from "react";
 
+function user_update(user_id, media_data, selected, update_event, update_callback) {
+  let query_path = `http://localhost:5000/query/${user_id}`; 
+  fetch(query_path, {
+    method: 'POST',
+    body: JSON.stringify({
+      user_id: user_id,
+      m1: media_data[0].id,
+      m2: media_data[1].id,
+      selected: selected, 
+      choice: update_event //"UNKNOWN", "UNSURE", "BETTER"
+    }),
+    headers: {
+      'mode': 'cors',
+      'Content-Type':'application/json',
+    },
+  })
+     .then((response) => response.json())
+     .then((data) => {
+        console.log("Recieved post result", data); 
+        let media_data = data.media_data; 
+        update_callback(media_data); 
+     })
+     .catch((err) => {
+        console.log(err.message);
+     });
+}
+
 export var MediaPanel = ({data}) => {
   // let float_side = (data.side_left ? "left" : "right"); 
     let border_color = (data.selected ? "#A9FF00" : "#030303"); 
@@ -22,13 +49,15 @@ class MediaDisplay extends React.Component {
   }
 
   selectionUpdate (e) {
-      console.log("key pressed"); 
+      // console.log("key pressed"); 
       switch (e.key) {
         case "Left": // IE/Edge specific value
         case "ArrowLeft":
           // Do something for "left arrow" key press.
           if(this.state.selection >= 0) {
             this.setState({selection: -1}); 
+          } else {
+            user_update(this.props.user_id, this.props.data, this.state.selection, "BETTER", this.props.media_callback);
           }
           break; 
         case "Right": // IE/Edge specific value
@@ -36,36 +65,41 @@ class MediaDisplay extends React.Component {
           // Do something for "right arrow" key press.
           if(this.state.selection <= 0) {
             this.setState({selection: 1}); 
+          } else {
+            user_update(this.props.user_id, this.props.data, this.state.selection, "BETTER", this.props.media_callback);
           }
           break; 
         case "Down": // IE/Edge specific value
         case "ArrowDown":
           // Do something for "down arrow" key press.
+          user_update(this.props.user_id, this.props.data, this.state.selection, "UNSURE", this.props.media_callback);
           break;
         case "Up": // IE/Edge specific value
         case "ArrowUp":
           // Do something for "up arrow" key press.
+          if(this.state.selection !== 0) {
+            user_update(this.props.user_id, this.props.data, this.state.selection, "UNKNOWN", this.props.media_callback);
+          }
           break;
         default:
           return; 
     }
   }
 
+  componentDidMount() {
+    document.addEventListener("keydown", this.selectionUpdate);
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener("keydown", this.selectionUpdate);
+  }
+
   render() {
-    // return (
-    //   <div>
-    //     <p>You clicked {this.state.count} times</p>
-    //     <button onClick={() => this.setState({ count: this.state.count + 1 })}>
-    //       Click me
-    //     </button>
-    //   </div>
-    // );
     let p = this.props.data; 
     let left = p[0];
     let right = p[1]; 
-    // window.addEventListener("keydown", this.selectionUpdate);
     return (
-      <div>
+      <div text-align="center">
         <h1>Left or right?</h1>
         <div className="MediaDisplay"
             style= {{borderWidth: "5px", borderTopColor: "#B10101",
